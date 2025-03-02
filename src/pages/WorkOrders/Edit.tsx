@@ -53,7 +53,6 @@ export const WorkOrderEdit: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log(currentStatus);
     if (!isManager && nextStatus !== "stage") {
       const _nextStatus =
         nextStatus || currentStatus || formProps.form?.getFieldValue("status");
