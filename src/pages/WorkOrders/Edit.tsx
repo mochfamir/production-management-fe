@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, DatePicker, Select, Button, InputNumber } from "antd";
 import { useForm, Edit, useSelect } from "@refinedev/antd";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -18,6 +18,7 @@ export const WorkOrderEdit: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { nextStatus } = location.state || {};
+  const [currentStatus, setCurrentStatus] = useState(nextStatus);
   const { id } = useParams();
 
   const { formProps, saveButtonProps } = useForm({
@@ -52,13 +53,14 @@ export const WorkOrderEdit: React.FC = () => {
   });
 
   useEffect(() => {
+    console.log(currentStatus);
     if (!isManager && nextStatus !== "stage") {
-      const _nextStatus = nextStatus || formProps.form?.getFieldValue("status");
-      setTimeout(() => {
-        formProps.form?.setFieldValue("status", _nextStatus);
-      }, 300);
+      const _nextStatus =
+        nextStatus || currentStatus || formProps.form?.getFieldValue("status");
+
+      formProps.form?.setFieldValue("status", _nextStatus);
     }
-  }, [nextStatus]);
+  }, [currentStatus, formProps.form?.getFieldValue("status")]);
 
   if (isManager) {
     return (
@@ -153,11 +155,19 @@ export const WorkOrderEdit: React.FC = () => {
           name="status"
           rules={[{ required: true, message: "Please select the status!" }]}
         >
-          <Select disabled={!isManager}>
-            <Select.Option value="PENDING">Pending</Select.Option>
-            <Select.Option value="IN_PROGRESS">In Progress</Select.Option>
-            <Select.Option value="COMPLETED">Completed</Select.Option>
-            <Select.Option value="CANCELED">Canceled</Select.Option>
+          <Select>
+            {["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELED"]
+              .filter((sts) => {
+                if (nextStatus === "stage" && sts === "IN_PROGRESS")
+                  return true;
+
+                return sts === nextStatus;
+              })
+              .map((sts) => (
+                <Select.Option value={sts}>
+                  {sts.split("_").join(" ")}
+                </Select.Option>
+              ))}
           </Select>
         </Form.Item>
 
