@@ -1,64 +1,86 @@
-import { GitHubBanner, Refine, WelcomePage } from "@refinedev/core";
-import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+import React from "react";
+import { Refine } from "@refinedev/core";
+import { Authenticated, AuthProvider } from "@refinedev/core";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import { WorkOrderList } from "./pages/WorkOrders/List";
+import { WorkOrderCreate } from "./pages/WorkOrders/Create";
+import { WorkOrderEdit } from "./pages/WorkOrders/Edit";
+import { Home, Layout } from "./components";
+import { dataProvider } from "./providers/dataProvider";
+import axiosInstance from "./utils/axios";
 
-import { useNotificationProvider } from "@refinedev/antd";
-import "@refinedev/antd/dist/reset.css";
+const App: React.FC = () => {
+  const authProvider: AuthProvider = {
+    login: async ({ username, password }) => {
+      localStorage.setItem("token", "dummy-token");
+      return { success: true };
+    },
+    logout: async () => {
+      localStorage.removeItem("token");
+      return { success: true };
+    },
+    check: async () => {
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.get("/auth/verify");
+      const user = response.data?.user;
 
-import dataProvider, {
-  GraphQLClient,
-  liveProvider,
-} from "@refinedev/nestjs-query";
-import routerBindings, {
-  DocumentTitleHandler,
-  UnsavedChangesNotifier,
-} from "@refinedev/react-router";
-import { App as AntdApp } from "antd";
-import { createClient } from "graphql-ws";
-import { BrowserRouter, Route, Routes } from "react-router";
-import { ColorModeContextProvider } from "./contexts/color-mode";
+      if (token) localStorage.setItem("token", token);
+      if (user?.role) localStorage.setItem("role", user?.role);
 
-const API_URL = "https://api.nestjs-query.refine.dev/graphql";
-const WS_URL = "wss://api.nestjs-query.refine.dev/graphql";
+      return { authenticated: !!user.userId };
+    },
+    onError: async (error) => {
+      console.error(error);
+      return { error };
+    },
+  };
 
-const gqlClient = new GraphQLClient(API_URL);
-const wsClient = createClient({ url: WS_URL });
-
-function App() {
   return (
     <BrowserRouter>
-      <GitHubBanner />
-      <RefineKbarProvider>
-        <ColorModeContextProvider>
-          <AntdApp>
-            <DevtoolsProvider>
-              <Refine
-                dataProvider={dataProvider(gqlClient)}
-                liveProvider={liveProvider(wsClient)}
-                notificationProvider={useNotificationProvider}
-                routerProvider={routerBindings}
-                options={{
-                  syncWithLocation: true,
-                  warnWhenUnsavedChanges: true,
-                  useNewQueryKeys: true,
-                  projectId: "dLwJNz-OZC9v1-sarwXX",
-                  liveMode: "auto",
-                }}
-              >
-                <Routes>
-                  <Route index element={<WelcomePage />} />
-                </Routes>
-                <RefineKbar />
-                <UnsavedChangesNotifier />
-                <DocumentTitleHandler />
-              </Refine>
-              <DevtoolsPanel />
-            </DevtoolsProvider>
-          </AntdApp>
-        </ColorModeContextProvider>
-      </RefineKbarProvider>
+      <Refine
+        authProvider={authProvider}
+        dataProvider={dataProvider}
+        resources={[
+          {
+            name: "work-orders",
+            list: WorkOrderList,
+            create: WorkOrderCreate,
+            edit: WorkOrderEdit,
+          },
+        ]}
+      >
+        <Routes>
+          {/* Rute yang memerlukan autentikasi */}
+          <Route
+            path="/"
+            element={
+              <Authenticated key="auth" fallback={<Navigate to="/login" />}>
+                <Layout />
+              </Authenticated>
+            }
+          >
+            {/* Rute anak di dalam Layout */}
+            <Route index element={<Home />} />
+            <Route path="work-orders" element={<WorkOrderList />} />
+            <Route path="work-orders/create" element={<WorkOrderCreate />} />
+            <Route path="work-orders/edit/:id" element={<WorkOrderEdit />} />
+          </Route>
+
+          {/* Rute publik */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </Refine>
     </BrowserRouter>
   );
-}
+};
 
 export default App;

@@ -1,1 +1,2 @@
-export { Header } from "./header";
+export { Layout } from "./Layout";
+export { Home } from "./Home";
