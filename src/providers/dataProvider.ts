@@ -9,7 +9,7 @@ export const dataProvider: DataProvider = {
   getApiUrl: () => API_URL,
 
   getList: async ({ resource, pagination, filters, sorters }) => {
-    const { current = 1, pageSize = 100 } = pagination ?? {};
+    const { current = 1, pageSize = 10 } = pagination ?? {};
     const query = {
       page: current,
       limit: pageSize,
@@ -23,7 +23,7 @@ export const dataProvider: DataProvider = {
     });
 
     return {
-      data: response.data,
+      data: response.data.data,
       total: response.data.total,
     };
   },
