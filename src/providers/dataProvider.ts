@@ -3,7 +3,7 @@ import axiosInstance from "../utils/axios";
 import { DataProvider } from "@refinedev/core";
 import { convertFiltersToQueryString } from "../utils/filter-to-query";
 
-const API_URL = "http://localhost:3000"; // URL backend Nest.js
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 export const dataProvider: DataProvider = {
   getApiUrl: () => API_URL,

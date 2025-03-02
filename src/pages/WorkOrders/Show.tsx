@@ -1,7 +1,7 @@
 import React from "react";
 import { Show } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography } from "antd"; // Impor Typography dari antd
+import { Typography } from "antd";
 
 const { Title, Text } = Typography;
 
