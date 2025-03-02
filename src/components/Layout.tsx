@@ -1,11 +1,19 @@
 import React from "react";
-import { Layout as AntLayout, Menu } from "antd";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Layout as AntLayout, Button, Menu } from "antd";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 
 const { Header, Content, Footer, Sider } = AntLayout;
 
 export const Layout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+
+    navigate("/login");
+  }
 
   return (
     <AntLayout style={{ minHeight: "100vh" }}>
@@ -32,7 +40,19 @@ export const Layout: React.FC = () => {
       {/* Main Content */}
       <AntLayout>
         {/* Header */}
-        <Header style={{ background: "#fff", padding: 0 }} />
+        <Header
+          style={{
+            background: "#fff",
+            padding: 10,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <Button style={{ color: "red" }} onClick={() => logout()}>
+            Logout
+          </Button>
+        </Header>
 
         {/* Content */}
         <Content style={{ margin: "24px 16px 0" }}>
